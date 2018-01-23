@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 
+	joonix "github.com/joonix/log"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,7 +16,7 @@ var logger *log.Entry
 var sequence = 0
 
 func initLogger() *log.Entry {
-	log.SetFormatter(&log.JSONFormatter{})
+	log.SetFormatter(&joonix.FluentdFormatter{})
 	log.SetOutput(os.Stdout)
 	return log.WithFields(log.Fields{
 		"hostname": os.Getenv("HOSTNAME"),
@@ -64,6 +65,11 @@ func spitLogsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func generateError(w http.ResponseWriter, r *http.Request) {
+	logger.Error("Host unreachable: [database.svc]")
+	fmt.Fprintf(w, "Error generated")
+}
+
 func main() {
 	// logrus is compatible with standard golang's log API
 	log.Info("Program initiated")
@@ -76,6 +82,7 @@ func main() {
 	http.HandleFunc("/", healthHandler)
 	http.HandleFunc("/hello", helloHandler)
 	http.HandleFunc("/generate", spitLogsHandler)
+	http.HandleFunc("/error", generateError)
 
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
 }
