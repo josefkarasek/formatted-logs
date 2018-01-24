@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 
-	joonix "github.com/joonix/log"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -16,7 +15,12 @@ var logger *log.Entry
 var sequence = 0
 
 func initLogger() *log.Entry {
-	log.SetFormatter(&joonix.FluentdFormatter{})
+	log.SetFormatter(&log.JSONFormatter{
+		FieldMap: log.FieldMap{
+			log.FieldKeyMsg: "message",
+		},
+	})
+
 	log.SetOutput(os.Stdout)
 	return log.WithFields(log.Fields{
 		"hostname": os.Getenv("HOSTNAME"),
